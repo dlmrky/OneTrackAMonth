@@ -94,6 +94,11 @@
     color:var(--muted);
   }
 
+  .artist-name.no-caps{
+    text-transform:none;
+    letter-spacing:0.04em;
+  }
+
   .header-divider{
     grid-column:1 / -1;
     height:1px;
@@ -191,17 +196,16 @@
   }
   .track-btn.playing .track-num{ color:var(--amber); opacity:0.6; }
 
-  /* ---------- now playing bar ---------- */
+  /* ---------- player bar ---------- */
   .nowplaying{
     position:fixed;
     left:0; right:0; bottom:0;
     background:#000;
     border-top:1px solid var(--hairline);
-    padding:16px 5vw;
+    padding:14px 5vw;
     display:flex;
     align-items:center;
-    justify-content:center;
-    gap:16px;
+    gap:18px;
     font-size:12px;
     letter-spacing:0.04em;
     color:var(--muted);
@@ -209,20 +213,102 @@
     transition:transform .25s ease;
   }
   .nowplaying.visible{ transform:translateY(0); }
-  .nowplaying .dot{
-    width:6px;height:6px;border-radius:50%;
-    background:var(--amber);
+
+  .pp{
+    all:unset;
+    cursor:pointer;
+    width:34px;height:34px;
+    border:1px solid var(--hairline);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     flex-shrink:0;
+    transition:border-color .15s ease;
+  }
+  .pp:hover{ border-color:var(--muted); }
+  .pp:focus-visible{ outline:1px solid var(--amber); outline-offset:2px; }
+  .pp svg{ width:12px;height:12px; fill:var(--text); }
+  .pp .i-pause{ display:none; }
+  .pp.is-playing .i-play{ display:none; }
+  .pp.is-playing .i-pause{ display:block; }
+
+  .np-meta{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+    flex:0 1 240px;
+  }
+  .np-meta .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--muted-2);
+    flex-shrink:0;
+  }
+  .nowplaying.is-playing .np-meta .dot{
+    background:var(--amber);
     animation:pulse 1.2s ease-in-out infinite;
   }
   @keyframes pulse{
     0%,100%{ opacity:1; }
     50%{ opacity:0.25; }
   }
-  .nowplaying .np-text strong{
+  .np-meta strong{
     color:var(--text);
     font-weight:400;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
+
+  .time{
+    font-size:11px;
+    color:var(--muted);
+    width:34px;
+    flex-shrink:0;
+    font-variant-numeric:tabular-nums;
+  }
+  .time.dur{ text-align:left; }
+  .time.cur{ text-align:right; }
+
+  .scrub{
+    -webkit-appearance:none;
+    appearance:none;
+    flex:1;
+    height:18px;
+    background:transparent;
+    cursor:pointer;
+    --p:0%;
+  }
+  .scrub::-webkit-slider-runnable-track{
+    height:1px;
+    background:linear-gradient(to right,var(--amber) var(--p),var(--muted-2) var(--p));
+  }
+  .scrub::-moz-range-track{
+    height:1px;
+    background:var(--muted-2);
+  }
+  .scrub::-moz-range-progress{
+    height:1px;
+    background:var(--amber);
+  }
+  .scrub::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:9px;height:9px;
+    border-radius:50%;
+    background:var(--text);
+    margin-top:-4px;
+    border:none;
+  }
+  .scrub::-moz-range-thumb{
+    width:9px;height:9px;
+    border-radius:50%;
+    background:var(--text);
+    border:none;
+  }
+  .scrub:focus-visible{ outline:1px solid var(--amber); outline-offset:4px; }
+
+  .track-btn.playing.paused .eq span{ animation-play-state:paused; }
 
   footer{
     max-width:980px;
@@ -239,6 +325,9 @@
     .track-btn{ padding:0 8px; font-size:11.5px; gap:6px; }
     .month-cell{ padding:0 6px; font-size:10px; }
     .mark{ width:32px;height:32px; }
+    .nowplaying{ flex-wrap:wrap; gap:8px 12px; padding:12px 5vw; }
+    .np-meta{ order:-1; flex:1 0 100%; }
+    .scrub{ flex:1 1 0; min-width:0; }
   }
 </style>
 </head>
@@ -263,7 +352,7 @@
   </div>
   <div class="col-head">
     <svg class="mark" viewBox="0 0 44 44"><rect x="9" y="9" width="26" height="26"/><line x1="9" y1="22" x2="35" y2="22"/></svg>
-    <div class="artist-name">Dale</div>
+    <div class="artist-name no-caps">amDRaM</div>
   </div>
 
   <div class="header-divider"></div>
@@ -274,8 +363,14 @@
 <footer>Click a track title to play</footer>
 
 <div class="nowplaying" id="nowplaying">
-  <span class="dot"></span>
-  <span class="np-text">Now playing — <strong id="np-label"></strong></span>
+  <button class="pp" id="pp" aria-label="Play">
+    <svg class="i-play" viewBox="0 0 12 12"><path d="M2 1 L11 6 L2 11 Z"/></svg>
+    <svg class="i-pause" viewBox="0 0 12 12"><rect x="2" y="1" width="3" height="10"/><rect x="7" y="1" width="3" height="10"/></svg>
+  </button>
+  <div class="np-meta"><span class="dot"></span><strong id="np-label"></strong></div>
+  <span class="time cur" id="t-cur">0:00</span>
+  <input class="scrub" id="scrub" type="range" min="0" max="1000" step="1" value="0" aria-label="Seek">
+  <span class="time dur" id="t-dur">0:00</span>
 </div>
 
 <audio id="player"></audio>
@@ -288,10 +383,25 @@
   ];
   const artists = ['sam','rick','dale'];
 
+  // Display names used in the "now playing" label
+  const displayName = { sam:'Sam', rick:'Rick', dale:'amDRaM' };
+
+  // Custom track titles (text only). Files still play as 01.mp3, 02.mp3, ...
+  // Anything not listed here falls back to "Track N".
+  const titles = {
+    dale: ['Letting Go','YEAH!','ay-eye','la jungle fran\u00e7aise','Pumpkin & Storm']
+  };
+
   const board = document.getElementById('board');
   const player = document.getElementById('player');
   const nowplaying = document.getElementById('nowplaying');
   const npLabel = document.getElementById('np-label');
+  const pp = document.getElementById('pp');
+  const scrub = document.getElementById('scrub');
+  const tCur = document.getElementById('t-cur');
+  const tDur = document.getElementById('t-dur');
+
+  let currentBtn = null;
 
   months.forEach((m, i) => {
     const trackNo = i + 1;
@@ -306,21 +416,30 @@
     row.appendChild(monthCell);
 
     artists.forEach(artist => {
+      const title = (titles[artist] && titles[artist][i]) || `Track ${trackNo}`;
+
       const cell = document.createElement('div');
       cell.className = 'track-cell';
 
       const btn = document.createElement('button');
       btn.className = 'track-btn';
       btn.dataset.src = `audio/${artist}/${padded}.mp3`;
-      btn.dataset.label = `${artist.charAt(0).toUpperCase()+artist.slice(1)} — Track ${trackNo}`;
+      btn.dataset.label = `${displayName[artist]} \u2014 ${title}`;
 
-      btn.innerHTML = `
-        <span class="track-num">${padded}</span>
-        <span class="track-title">Track ${trackNo}</span>
-        <span class="eq"><span></span><span></span><span></span></span>
-      `;
+      const num = document.createElement('span');
+      num.className = 'track-num';
+      num.textContent = padded;
 
-      btn.addEventListener('click', () => playTrack(btn));
+      const name = document.createElement('span');
+      name.className = 'track-title';
+      name.textContent = title;
+
+      const eq = document.createElement('span');
+      eq.className = 'eq';
+      eq.innerHTML = '<span></span><span></span><span></span>';
+
+      btn.append(num, name, eq);
+      btn.addEventListener('click', () => onTrackClick(btn));
       cell.appendChild(btn);
       row.appendChild(cell);
     });
@@ -328,16 +447,90 @@
     board.appendChild(row);
   });
 
-  function playTrack(btn){
-    document.querySelectorAll('.track-btn.playing').forEach(b => b.classList.remove('playing'));
+  function onTrackClick(btn){
+    // Clicking the track that's already loaded toggles play/pause
+    if (btn === currentBtn) { togglePlay(); return; }
+
+    document.querySelectorAll('.track-btn.playing').forEach(b => b.classList.remove('playing','paused'));
     btn.classList.add('playing');
+    currentBtn = btn;
 
     player.src = btn.dataset.src;
-    player.play().catch(() => { /* file not present yet at design stage */ });
+    player.play().catch(() => { /* file not present yet */ });
 
     npLabel.textContent = btn.dataset.label;
     nowplaying.classList.add('visible');
+    resetScrub();
   }
+
+  function togglePlay(){
+    if (!currentBtn) return;
+    if (player.paused) player.play().catch(() => {});
+    else player.pause();
+  }
+
+  function fmt(s){
+    if (!isFinite(s)) return '0:00';
+    const m = Math.floor(s / 60);
+    const r = Math.floor(s % 60);
+    return `${m}:${String(r).padStart(2,'0')}`;
+  }
+
+  function setFill(){
+    const pct = (scrub.value / scrub.max) * 100;
+    scrub.style.setProperty('--p', pct + '%');
+  }
+
+  function resetScrub(){
+    scrub.value = 0;
+    setFill();
+    tCur.textContent = '0:00';
+    tDur.textContent = '0:00';
+  }
+
+  function setPlayingState(isPlaying){
+    pp.classList.toggle('is-playing', isPlaying);
+    pp.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+    nowplaying.classList.toggle('is-playing', isPlaying);
+    if (currentBtn) currentBtn.classList.toggle('paused', !isPlaying);
+  }
+
+  pp.addEventListener('click', togglePlay);
+
+  player.addEventListener('play',  () => setPlayingState(true));
+  player.addEventListener('pause', () => setPlayingState(false));
+  player.addEventListener('ended', () => setPlayingState(false));
+  player.addEventListener('error', () => setPlayingState(false));
+
+  player.addEventListener('loadedmetadata', () => {
+    tDur.textContent = fmt(player.duration);
+  });
+
+  player.addEventListener('timeupdate', () => {
+    if (dragging || !isFinite(player.duration)) return;
+    scrub.value = (player.currentTime / player.duration) * scrub.max;
+    setFill();
+    tCur.textContent = fmt(player.currentTime);
+  });
+
+  let dragging = false;
+  scrub.addEventListener('pointerdown', () => { dragging = true; });
+  scrub.addEventListener('pointerup',   () => { dragging = false; });
+  scrub.addEventListener('input', () => {
+    setFill();
+    if (!isFinite(player.duration)) return;
+    const t = (scrub.value / scrub.max) * player.duration;
+    tCur.textContent = fmt(t);
+    player.currentTime = t;
+  });
+
+  // Space bar toggles play/pause (unless a button/slider is focused)
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' && !['BUTTON','INPUT'].includes(document.activeElement.tagName)) {
+      e.preventDefault();
+      togglePlay();
+    }
+  });
 </script>
 
 </body>
