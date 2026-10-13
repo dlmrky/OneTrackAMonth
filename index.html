@@ -423,7 +423,14 @@
 
       const btn = document.createElement('button');
       btn.className = 'track-btn';
-      btn.dataset.src = `audio/${artist}/${padded}.mp3`;
+      btn.dataset.srcs = JSON.stringify([
+        `audio/${artist}/${padded}.mp3`,
+        `audio/${displayName[artist]}/${padded}.mp3`,
+        `audio/${artist}/${trackNo}.mp3`,
+        `audio/${padded}.mp3`,
+        `${padded}.mp3`,
+        `audio/${artist}/${padded}.MP3`
+      ]);
       btn.dataset.label = `${displayName[artist]} \u2014 ${title}`;
 
       const num = document.createElement('span');
@@ -455,12 +462,21 @@
     btn.classList.add('playing');
     currentBtn = btn;
 
-    player.src = btn.dataset.src;
-    player.play().catch(() => { /* file not present yet */ });
+    attempt = 0;
+    loadCurrent();
 
     npLabel.textContent = btn.dataset.label;
     nowplaying.classList.add('visible');
     resetScrub();
+  }
+
+
+  let attempt = 0;
+
+  function loadCurrent(){
+    const srcs = JSON.parse(currentBtn.dataset.srcs);
+    player.src = srcs[attempt];
+    player.play().catch(() => { /* handled by the error event */ });
   }
 
   function togglePlay(){
@@ -500,10 +516,21 @@
   player.addEventListener('play',  () => setPlayingState(true));
   player.addEventListener('pause', () => setPlayingState(false));
   player.addEventListener('ended', () => setPlayingState(false));
-  player.addEventListener('error', () => setPlayingState(false));
+  player.addEventListener('error', () => {
+    setPlayingState(false);
+    if (!currentBtn) return;
+    const srcs = JSON.parse(currentBtn.dataset.srcs);
+    if (attempt < srcs.length - 1) {
+      attempt++;
+      loadCurrent();
+    } else {
+      npLabel.textContent = `File not found: ${srcs[0]}`;
+    }
+  });
 
   player.addEventListener('loadedmetadata', () => {
     tDur.textContent = fmt(player.duration);
+    if (currentBtn) npLabel.textContent = currentBtn.dataset.label;
   });
 
   player.addEventListener('timeupdate', () => {
