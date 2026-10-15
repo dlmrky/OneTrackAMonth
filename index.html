@@ -48,7 +48,7 @@
     margin-top:10px;
   }
   .masthead .sub{
-    margin-top:10px;
+    margin-top:0;
     font-size:12px;
     color:var(--muted);
     letter-spacing:0.05em;
@@ -341,8 +341,6 @@
 <body>
 
 <div class="masthead">
-  <div class="eyebrow">Three artists · Twelve months · Thirty‑six tracks</div>
-  <h1>Sam / Rick / Dale</h1>
   <div class="sub">One track each, every month — Jun 2026 through May 2027</div>
 </div>
 
@@ -359,7 +357,7 @@
   </div>
   <div class="col-head">
     <svg class="mark" viewBox="0 0 44 44"><rect x="9" y="9" width="26" height="26"/><line x1="9" y1="22" x2="35" y2="22"/></svg>
-    <div class="artist-name no-caps">amDRaM</div>
+    <div class="artist-name">Dale</div>
   </div>
 
   <div class="header-divider"></div>
@@ -391,7 +389,7 @@
   const artists = ['sam','rick','dale'];
 
   // Display names used in the "now playing" label
-  const displayName = { sam:'Sam', rick:'Rick', dale:'amDRaM' };
+  const displayName = { sam:'Sam', rick:'Rick', dale:'Dale' };
 
   // Custom track titles (text only). Files still play as 01.mp3, 02.mp3, ...
   // Anything not listed here falls back to "Track N".
