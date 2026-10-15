@@ -317,6 +317,8 @@
 
   .track-btn.playing.paused .eq span{ animation-play-state:paused; }
 
+  footer .foot-line + .foot-line{ margin-top:8px; }
+
   footer{
     max-width:980px;
     margin:56px auto 0;
@@ -340,10 +342,6 @@
 </head>
 <body>
 
-<div class="masthead">
-  <div class="sub">One track each, every month — Jun 2026 through May 2027</div>
-</div>
-
 <div class="board" id="board">
   <div class="corner"></div>
 
@@ -365,7 +363,10 @@
   <!-- rows injected by JS -->
 </div>
 
-<footer>Click a track title to play</footer>
+<footer>
+  <div class="foot-line">One track each, every month — Jun 2026 through May 2027</div>
+  <div class="foot-line">Click a track title to play</div>
+</footer>
 
 <div class="nowplaying" id="nowplaying">
   <button class="pp" id="pp" aria-label="Play">
