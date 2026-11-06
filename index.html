@@ -438,14 +438,7 @@
 
       const btn = document.createElement('button');
       btn.className = 'track-btn';
-      btn.dataset.srcs = JSON.stringify([
-        `audio/${artist}/${padded}.mp3`,
-        `audio/${displayName[artist]}/${padded}.mp3`,
-        `audio/${artist}/${trackNo}.mp3`,
-        `audio/${padded}.mp3`,
-        `${padded}.mp3`,
-        `audio/${artist}/${padded}.MP3`
-      ]);
+      btn.dataset.srcs = JSON.stringify([`audio/${artist}/${padded}.mp3`]);
       btn.dataset.label = `${displayName[artist]} \u2014 ${title}`;
 
       const num = document.createElement('span');
